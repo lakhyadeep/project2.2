@@ -1,0 +1,50 @@
+REGISTER /usr/local/pig/lib/piggybank.jar;
+DEFINE CSVExcelStorage org.apache.pig.piggybank.storage.CSVExcelStorage();
+
+A = LOAD 'Consumer_Complaints.csv' USING CSVExcelStorage(',', 'NO_MULTILINE', 'UNIX', 'SKIP_INPUT_HEADER');
+---------------
+1. Write a Pig script to find no. of complaints which got timely response
+
+Solution 1:
+B = filter A by $13 matches 'Yes';
+C = group B  all;
+D = foreach C generate COUNT(B.$15);
+dump D;
+
+------------------
+2. Write a Pig script to find no. of complaints where consumer forum forwarded the complaint same day they received to respective company
+
+Solution 2:
+gen_date = foreach A generate $0 ,$11 ,$15;
+filter_date = filter gen_date by $0 == $1;
+group_all = group filter_date  all;
+count_complaint = foreach group_all generate COUNT(filter_date.$2);
+dump count_complaint;
+
+-------------------------
+3. Write a Pig script to find list of companies toping in complaint chart (companies with maximum number of complaints)
+
+Solution 3:
+gen_compid = foreach A generate $7,$15;
+group_name = group gen_compid by $0;
+count_compid = foreach group_name generate group,COUNT(gen_compid.$1);
+desc_order = order count_compid by $1 desc;
+limit_max = limit desc_order 10;
+dump limit_max;
+
+-----------------------------
+4. Write a Pig script to find no. of complaints filed with product type has &quot;Debt collection&quot; for the year 2015
+
+Solution 4:
+sub_year = foreach A generate SUBSTRING($0,6,10), $1,$15;
+filter_year = filter sub_year by  $0 == '2015';
+collection = filter filter_year by $1 matches 'Debt collection';
+group_all = group collection all;
+count_debt_complaint = foreach group_all generate COUNT(collection.$2);
+dump count_debt_complaint;
+
+
+
+
+
+
